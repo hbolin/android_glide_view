@@ -53,14 +53,10 @@ class _MyAppState extends State<MyApp> {
         appBar: AppBar(
           title: const Text('Plugin example app'),
         ),
-        body: const Center(
-          child: SizedBox(
-            width: 100,
-            height: 200,
-            child: FlutterAndroidGlideView(
-              imageUrl: 'https://d2hogr8w0bs1xj.cloudfront.net/aws/20230621/51b73acb19112fc90eea753767d5af96149edbd2.jpg',
-              boxFit: BoxFit.contain,
-            ),
+        body: const SingleChildScrollView(
+          child: FlutterAndroidGlideView(
+            imageUrl: 'https://d2hogr8w0bs1xj.cloudfront.net/aws/20230621/51b73acb19112fc90eea753767d5af96149edbd2.jpg',
+            boxFit: BoxFit.contain,
           ),
         ),
       ),

@@ -14,6 +14,9 @@ import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 import com.dy.android_glide_view.widget.FlutterAndroidGlideViewFactory;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import io.flutter.Log;
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.MethodCall;
@@ -34,7 +37,7 @@ public class AndroidGlideViewPlugin implements FlutterPlugin, MethodCallHandler 
   public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
     channel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(), "android_glide_view");
     channel.setMethodCallHandler(this);
-    flutterPluginBinding.getPlatformViewRegistry().registerViewFactory("FlutterAndroidGlideView", new FlutterAndroidGlideViewFactory());
+    flutterPluginBinding.getPlatformViewRegistry().registerViewFactory("FlutterAndroidGlideView", new FlutterAndroidGlideViewFactory(flutterPluginBinding.getBinaryMessenger()));
     context = flutterPluginBinding.getApplicationContext();
   }
 
@@ -43,23 +46,29 @@ public class AndroidGlideViewPlugin implements FlutterPlugin, MethodCallHandler 
     if (call.method.equals("getPlatformVersion")) {
       result.success("Android " + android.os.Build.VERSION.RELEASE);
     } else if (call.method.equals("checkImageUrlValid")) {
-      String imageUrl =  call.argument("image_url");
-      Log.d("android_glide_view","checkImageUrlValid image_url is " + imageUrl);
-      Glide.with(context).asBitmap().load(imageUrl).listener(new RequestListener<Bitmap>() {
-        @Override
-        public boolean onLoadFailed(@Nullable GlideException e, @Nullable Object model, @NonNull Target<Bitmap> target, boolean isFirstResource) {
-          Log.d("android_glide_view","checkImageUrlValid image_url is " + imageUrl +" onLoadFailed");
-          result.success(false);
-          return false;
-        }
+        String imageUrl =  call.argument("image_url");
+        Log.d("android_glide_view","checkImageUrlValid image_url is " + imageUrl);
+        Glide.with(context).load(imageUrl).listener(new RequestListener<Drawable>() {
+            @Override
+            public boolean onLoadFailed(@Nullable GlideException e, @Nullable Object model, @NonNull Target<Drawable> target, boolean isFirstResource) {
+                Map<String, Object> creationParams = new HashMap<>();
+                creationParams.put("result", false);
+                result.success(creationParams);
+                return false;
+            }
 
-        @Override
-        public boolean onResourceReady(@NonNull Bitmap resource, @NonNull Object model, Target<Bitmap> target, @NonNull DataSource dataSource, boolean isFirstResource) {
-          Log.d("android_glide_view","checkImageUrlValid image_url is " + imageUrl +" onResourceReady");
-          result.success(true);
-          return false;
-        }
-      }).submit();
+            @Override
+            public boolean onResourceReady(@NonNull Drawable resource, @NonNull Object model, Target<Drawable> target, @NonNull DataSource dataSource, boolean isFirstResource) {
+                int width = resource.getIntrinsicWidth(); // 获取图像宽度
+                int height = resource.getIntrinsicHeight(); // 获取图像高度
+                Map<String, Object> creationParams = new HashMap<>();
+                creationParams.put("result", true);
+                creationParams.put("image_width", width);
+                creationParams.put("image_height", height);
+                result.success(creationParams);
+                return false;
+            }
+        }).submit();
     } else {
       result.notImplemented();
     }

@@ -1,3 +1,4 @@
+import 'package:android_glide_view/src/model/check_image_url_valid_model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -16,10 +17,14 @@ class MethodChannelAndroidGlideView extends AndroidGlideViewPlatform {
   }
 
   @override
-  Future<bool?> checkImageUrlValid(String imageUrl) async {
-    final valid = await methodChannel.invokeMethod<bool>('checkImageUrlValid', {
+  Future<CheckImageUrlValidResult?> checkImageUrlValid(String imageUrl) async {
+    final result = await methodChannel.invokeMethod<Map>('checkImageUrlValid', {
       "image_url": imageUrl,
     });
-    return valid;
+    return CheckImageUrlValidResult(
+      result: result!["result"],
+      imageWidth: result["image_width"],
+      imageHeight: result["image_height"],
+    );
   }
 }

@@ -26,8 +26,10 @@ class _FlutterAndroidGlideViewState extends State<FlutterAndroidGlideView> {
   // This is used in the platform side to register the view.
   static const String viewType = 'FlutterAndroidGlideView';
 
+  _FlutterAndroidGlideViewController? _controller;
+
   bool _isLoading = true;
-  bool? _imageUrlValid;
+  CheckImageUrlValidResult? _checkImageUrlValidResult;
 
   @override
   void initState() {
@@ -38,7 +40,8 @@ class _FlutterAndroidGlideViewState extends State<FlutterAndroidGlideView> {
         if (mounted) {
           setState(() {
             _isLoading = false;
-            _imageUrlValid = value;
+            _checkImageUrlValidResult = value;
+            print("_checkImageUrlValidResult:$_checkImageUrlValidResult");
           });
         }
       });
@@ -60,22 +63,40 @@ class _FlutterAndroidGlideViewState extends State<FlutterAndroidGlideView> {
       }
       return loadingWidget ?? const CupertinoActivityIndicator();
     }
-    if (_imageUrlValid != true) {
+    if (_checkImageUrlValidResult?.result != true) {
       Widget? errorWidget;
       if (widget.buildErrorWidget != null) {
         errorWidget = widget.buildErrorWidget!(context, widget.imageUrl);
       }
       return errorWidget ?? ErrorWidget("invalid image url");
     }
-    return AndroidView(
-      viewType: viewType,
-      layoutDirection: TextDirection.ltr,
-      creationParams: <String, dynamic>{
-        "image_url": widget.imageUrl,
-        "box_fit": boxFitToInt(widget.boxFit),
-      },
-      creationParamsCodec: const StandardMessageCodec(),
-    );
+    return LayoutBuilder(builder: (context, constraints) {
+      double width = constraints.maxWidth;
+      double height = _checkImageUrlValidResult!.imageHeight! / _checkImageUrlValidResult!.imageWidth! * width;
+      return SizedBox(
+        width: width,
+        height: height,
+        child: AndroidView(
+          viewType: viewType,
+          layoutDirection: TextDirection.ltr,
+          creationParams: <String, dynamic>{
+            "image_url": widget.imageUrl,
+            "box_fit": boxFitToInt(widget.boxFit),
+          },
+          creationParamsCodec: const StandardMessageCodec(),
+          onPlatformViewCreated: (viewId) {
+            _controller = _FlutterAndroidGlideViewController(viewId);
+            _controller!.setMethodCallHandler((call) async {
+              if (call.method == "resetSize") {
+                double imageWidth = call.arguments["image_width"];
+                double imageHeight = call.arguments["image_height"];
+                print("resetSize imageWidth:$imageWidth imageHeight:$imageHeight");
+              }
+            });
+          },
+        ),
+      );
+    });
   }
 
   int boxFitToInt(BoxFit boxFit) {
@@ -95,5 +116,17 @@ class _FlutterAndroidGlideViewState extends State<FlutterAndroidGlideView> {
       case BoxFit.scaleDown:
         return 7;
     }
+  }
+}
+
+class _FlutterAndroidGlideViewController {
+  final MethodChannel _channel;
+
+  _FlutterAndroidGlideViewController(
+    int viewId,
+  ) : _channel = MethodChannel('com.dy.android_glide_view/FlutterAndroidGlideView_$viewId');
+
+  void setMethodCallHandler(Future<dynamic> Function(MethodCall call)? handler) {
+    _channel.setMethodCallHandler(handler);
   }
 }

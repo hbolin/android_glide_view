@@ -2,6 +2,8 @@ package com.dy.android_glide_view;
 
 import androidx.annotation.NonNull;
 
+import com.dy.android_glide_view.widget.FlutterAndroidGlideViewFactory;
+
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
@@ -20,6 +22,7 @@ public class AndroidGlideViewPlugin implements FlutterPlugin, MethodCallHandler 
   public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
     channel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(), "android_glide_view");
     channel.setMethodCallHandler(this);
+    flutterPluginBinding.getPlatformViewRegistry().registerViewFactory("FlutterAndroidGlideView", new FlutterAndroidGlideViewFactory());
   }
 
   @Override

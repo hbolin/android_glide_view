@@ -31,8 +31,7 @@ class _MyAppState extends State<MyApp> {
     // Platform messages may fail, so we use a try/catch PlatformException.
     // We also handle the message potentially returning null.
     try {
-      platformVersion =
-          await _androidGlideViewPlugin.getPlatformVersion() ?? 'Unknown platform version';
+      platformVersion = await _androidGlideViewPlugin.getPlatformVersion() ?? 'Unknown platform version';
     } on PlatformException {
       platformVersion = 'Failed to get platform version.';
     }
@@ -54,8 +53,15 @@ class _MyAppState extends State<MyApp> {
         appBar: AppBar(
           title: const Text('Plugin example app'),
         ),
-        body: Center(
-          child: Text('Running on: $_platformVersion\n'),
+        body: const Center(
+          child: SizedBox(
+            width: 100,
+            height: 200,
+            child: FlutterAndroidGlideView(
+              imageUrl: 'https://d2hogr8w0bs1xj.cloudfront.net/aws/20230621/51b73acb19112fc90eea753767d5af96149edbd2.jpg',
+              boxFit: BoxFit.contain,
+            ),
+          ),
         ),
       ),
     );

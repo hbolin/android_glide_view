@@ -26,4 +26,8 @@ abstract class AndroidGlideViewPlatform extends PlatformInterface {
   Future<String?> getPlatformVersion() {
     throw UnimplementedError('platformVersion() has not been implemented.');
   }
+
+  Future<bool?> checkImageUrlValid(String imageUrl) async {
+    throw UnimplementedError('checkImageUrlValid() has not been implemented.');
+  }
 }

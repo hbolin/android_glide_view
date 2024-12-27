@@ -14,4 +14,12 @@ class MethodChannelAndroidGlideView extends AndroidGlideViewPlatform {
     final version = await methodChannel.invokeMethod<String>('getPlatformVersion');
     return version;
   }
+
+  @override
+  Future<bool?> checkImageUrlValid(String imageUrl) async {
+    final valid = await methodChannel.invokeMethod<bool>('checkImageUrlValid', {
+      "image_url": imageUrl,
+    });
+    return valid;
+  }
 }

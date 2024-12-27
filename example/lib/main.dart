@@ -56,7 +56,7 @@ class _MyAppState extends State<MyApp> {
         body: const SingleChildScrollView(
           child: SizedBox(
             width: 300,
-            height: 400,
+            // height: 400,
             child: FlutterAndroidGlideView(
               imageUrl: 'https://d2hogr8w0bs1xj.cloudfront.net/aws/20230621/51b73acb19112fc90eea753767d5af96149edbd2.jpg',
               // boxFit: BoxFit.contain,

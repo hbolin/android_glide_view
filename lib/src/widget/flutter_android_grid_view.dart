@@ -72,13 +72,17 @@ class _FlutterAndroidGlideViewState extends State<FlutterAndroidGlideView> {
       return SizedBox(
         width: width,
         height: height,
-        child: AndroidView(
-          viewType: viewType,
-          layoutDirection: TextDirection.ltr,
-          creationParams: <String, dynamic>{
-            "image_url": widget.imageUrl,
-          },
-          creationParamsCodec: const StandardMessageCodec(),
+        // AbsorbPointer: 阻止事件传递到背景
+        child: AbsorbPointer(
+          absorbing: true,
+          child: AndroidView(
+            viewType: viewType,
+            layoutDirection: TextDirection.ltr,
+            creationParams: <String, dynamic>{
+              "image_url": widget.imageUrl,
+            },
+            creationParamsCodec: const StandardMessageCodec(),
+          ),
         ),
       );
     });

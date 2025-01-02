@@ -3,6 +3,8 @@ package com.dy.android_glide_view;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
+import android.util.DisplayMetrics;
+import android.view.WindowManager;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -14,6 +16,7 @@ import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 import com.dy.android_glide_view.widget.FlutterAndroidGlideViewFactory;
 
+import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,6 +35,7 @@ public class AndroidGlideViewPlugin implements FlutterPlugin, MethodCallHandler 
   /// when the Flutter Engine is detached from the Activity
   private MethodChannel channel;
   private Context context;
+  private static Integer screenWidth;
 
   @Override
   public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
@@ -65,6 +69,47 @@ public class AndroidGlideViewPlugin implements FlutterPlugin, MethodCallHandler 
                 creationParams.put("result", true);
                 creationParams.put("image_width", width);
                 creationParams.put("image_height", height);
+                result.success(creationParams);
+                return false;
+            }
+        }).submit();
+    } else if(call.method.equals("loadImage")) {
+        String imageUrl = call.argument("image_url");
+        Glide.with(context).asBitmap().load(imageUrl).listener(new RequestListener<Bitmap>() {
+            @Override
+            public boolean onLoadFailed(@Nullable GlideException e, @Nullable Object model, @NonNull Target<Bitmap> target, boolean isFirstResource) {
+                Map<String, Object> creationParams = new HashMap<>();
+                creationParams.put("result", false);
+                result.success(creationParams);
+                return false;
+            }
+
+            @Override
+            public boolean onResourceReady(@NonNull Bitmap resource, @NonNull Object model, Target<Bitmap> target, @NonNull DataSource dataSource, boolean isFirstResource) {
+                if (screenWidth == null) {
+                    // 获取屏幕宽度和高度
+                    DisplayMetrics displayMetrics = new DisplayMetrics();
+                    WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+                    windowManager.getDefaultDisplay().getMetrics(displayMetrics);
+                    screenWidth = displayMetrics.widthPixels;
+                    int height = displayMetrics.heightPixels;
+                }
+                int width = resource.getWidth(); // 获取图像宽度
+                int height = resource.getHeight(); // 获取图像高度
+                int quality = 100;
+                if (width > screenWidth) {
+                    quality = screenWidth / width;
+                }
+                Log.d("android_glide_view", "screenWidth is " + screenWidth + " image width is " + width + " compress quality is " + quality);
+
+                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                resource.compress(Bitmap.CompressFormat.PNG, quality, byteArrayOutputStream);
+                byte[] byteArray = byteArrayOutputStream.toByteArray(); // 返回图片的 byte[]
+                Map<String, Object> creationParams = new HashMap<>();
+                creationParams.put("result", true);
+                creationParams.put("image_width", width);
+                creationParams.put("image_height", height);
+                creationParams.put("byte_array", byteArray);
                 result.success(creationParams);
                 return false;
             }

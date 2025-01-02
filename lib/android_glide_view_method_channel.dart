@@ -1,4 +1,5 @@
 import 'package:android_glide_view/src/model/check_image_url_valid_model.dart';
+import 'package:android_glide_view/src/model/load_image_model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -25,6 +26,19 @@ class MethodChannelAndroidGlideView extends AndroidGlideViewPlatform {
       result: result!["result"],
       imageWidth: result["image_width"],
       imageHeight: result["image_height"],
+    );
+  }
+
+  @override
+  Future<LoadImageModel?> loadImage(String imageUrl) async {
+    final result = await methodChannel.invokeMethod<Map>('loadImage', {
+      "image_url": imageUrl,
+    });
+    return LoadImageModel(
+      result: result!["result"],
+      imageWidth: result["result"] ? result["image_width"] : null,
+      imageHeight: result["result"] ? result["image_height"] : null,
+      byteArray: result["result"] ? result["byte_array"] : null,
     );
   }
 }

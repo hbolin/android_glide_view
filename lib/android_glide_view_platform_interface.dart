@@ -1,4 +1,5 @@
 import 'package:android_glide_view/src/model/check_image_url_valid_model.dart';
+import 'package:android_glide_view/src/model/load_image_model.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import 'android_glide_view_method_channel.dart';
@@ -29,6 +30,10 @@ abstract class AndroidGlideViewPlatform extends PlatformInterface {
   }
 
   Future<CheckImageUrlValidResult?> checkImageUrlValid(String imageUrl) async {
+    throw UnimplementedError('checkImageUrlValid() has not been implemented.');
+  }
+
+  Future<LoadImageModel?> loadImage(String imageUrl) async {
     throw UnimplementedError('checkImageUrlValid() has not been implemented.');
   }
 }

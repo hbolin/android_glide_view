@@ -1,16 +1,15 @@
 import 'package:android_glide_view/android_glide_view.dart';
+import 'package:android_glide_view/src/model/load_image_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import 'package:universal_platform/universal_platform.dart';
 
-@Deprecated("性能不好的手机上，会出现OOM")
-class FlutterAndroidGlideView extends StatefulWidget {
+class FlutterAndroidGlideView2 extends StatefulWidget {
   final String imageUrl;
   final Widget Function(BuildContext context, String imageUrl)? buildLoadingWidget;
   final Widget Function(BuildContext context, String imageUrl)? buildErrorWidget;
 
-  const FlutterAndroidGlideView({
+  const FlutterAndroidGlideView2({
     super.key,
     required this.imageUrl,
     this.buildLoadingWidget,
@@ -18,27 +17,24 @@ class FlutterAndroidGlideView extends StatefulWidget {
   });
 
   @override
-  State<FlutterAndroidGlideView> createState() => _FlutterAndroidGlideViewState();
+  State<FlutterAndroidGlideView2> createState() => _FlutterAndroidGlideView2State();
 }
 
-class _FlutterAndroidGlideViewState extends State<FlutterAndroidGlideView> {
-  // This is used in the platform side to register the view.
-  static const String viewType = 'FlutterAndroidGlideView';
-
+class _FlutterAndroidGlideView2State extends State<FlutterAndroidGlideView2> {
   bool _isLoading = true;
-  CheckImageUrlValidResult? _checkImageUrlValidResult;
+  LoadImageModel? _loadImageModel;
 
   @override
   void initState() {
     super.initState();
     if (UniversalPlatform.isAndroid == true) {
       _isLoading = true;
-      AndroidGlideView().checkImageUrlValid(widget.imageUrl).then((value) {
+      AndroidGlideView().loadImage(widget.imageUrl).then((value) {
         if (mounted) {
           setState(() {
             _isLoading = false;
-            _checkImageUrlValidResult = value;
-            print("_checkImageUrlValidResult:$_checkImageUrlValidResult");
+            _loadImageModel = value;
+            print("_loadImageModel:$_loadImageModel");
           });
         }
       });
@@ -60,7 +56,7 @@ class _FlutterAndroidGlideViewState extends State<FlutterAndroidGlideView> {
       }
       return loadingWidget ?? const CupertinoActivityIndicator();
     }
-    if (_checkImageUrlValidResult?.result != true) {
+    if (_loadImageModel?.result != true) {
       Widget? errorWidget;
       if (widget.buildErrorWidget != null) {
         errorWidget = widget.buildErrorWidget!(context, widget.imageUrl);
@@ -69,22 +65,11 @@ class _FlutterAndroidGlideViewState extends State<FlutterAndroidGlideView> {
     }
     return LayoutBuilder(builder: (context, constraints) {
       double width = constraints.maxWidth;
-      double height = _checkImageUrlValidResult!.imageHeight! / _checkImageUrlValidResult!.imageWidth! * width;
-      return SizedBox(
+      double height = _loadImageModel!.imageHeight! / _loadImageModel!.imageWidth! * width;
+      return Image.memory(
+        _loadImageModel!.byteArray!,
         width: width,
         height: height,
-        // AbsorbPointer: 阻止事件传递到背景
-        child: AbsorbPointer(
-          absorbing: true,
-          child: AndroidView(
-            viewType: viewType,
-            layoutDirection: TextDirection.ltr,
-            creationParams: <String, dynamic>{
-              "image_url": widget.imageUrl,
-            },
-            creationParamsCodec: const StandardMessageCodec(),
-          ),
-        ),
       );
     });
   }

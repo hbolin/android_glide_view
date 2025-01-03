@@ -83,7 +83,6 @@ class _FlutterAndroidGlideView2State extends State<FlutterAndroidGlideView2> {
         _loadImageModel!.byteArray!,
         width: double.infinity,
         fit: BoxFit.fitWidth,
-        alignment: Alignment.topCenter,
         frameBuilder: (BuildContext context, Widget child, int? frame, bool wasSynchronouslyLoaded) {
           if (_loadImageModel!.imageWidth == null || _loadImageModel!.imageHeight == null) {
             final imageProvider = MemoryImage(_loadImageModel!.byteArray!);

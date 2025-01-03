@@ -28,13 +28,20 @@ class _FlutterAndroidGlideView2State extends State<FlutterAndroidGlideView2> {
   void initState() {
     super.initState();
     if (UniversalPlatform.isAndroid == true) {
+      _loadImageModel = AndroidGlideViewManager.findByImageUrl(widget.imageUrl);
+      if (_loadImageModel != null) {
+        _isLoading = false;
+        return;
+      }
       _isLoading = true;
       AndroidGlideView().loadImage(widget.imageUrl).then((value) {
+        value!.imageWidth = null;
+        value.imageHeight = null;
+        AndroidGlideViewManager.addCache(widget.imageUrl, value);
         if (mounted) {
           setState(() {
             _isLoading = false;
             _loadImageModel = value;
-            print("_loadImageModel:$_loadImageModel");
           });
         }
       });
@@ -43,6 +50,14 @@ class _FlutterAndroidGlideView2State extends State<FlutterAndroidGlideView2> {
 
   @override
   Widget build(BuildContext context) {
+    return SizedBox(
+      width: _loadImageModel?.imageWidth?.toDouble(),
+      height: _loadImageModel?.imageHeight?.toDouble(),
+      child: build2(context),
+    );
+  }
+
+  Widget build2(BuildContext context) {
     if (UniversalPlatform.isAndroid != true) {
       if (kDebugMode) {
         return ErrorWidget('platformVersion() has not been implemented.');
@@ -64,12 +79,25 @@ class _FlutterAndroidGlideView2State extends State<FlutterAndroidGlideView2> {
       return errorWidget ?? ErrorWidget("invalid image url");
     }
     return LayoutBuilder(builder: (context, constraints) {
-      double width = constraints.maxWidth;
-      double height = _loadImageModel!.imageHeight! / _loadImageModel!.imageWidth! * width;
       return Image.memory(
         _loadImageModel!.byteArray!,
-        width: width,
-        height: height,
+        width: double.infinity,
+        fit: BoxFit.fitWidth,
+        alignment: Alignment.topCenter,
+        frameBuilder: (BuildContext context, Widget child, int? frame, bool wasSynchronouslyLoaded) {
+          if (_loadImageModel!.imageWidth == null || _loadImageModel!.imageHeight == null) {
+            final imageProvider = MemoryImage(_loadImageModel!.byteArray!);
+            final imageStream = imageProvider.resolve(const ImageConfiguration());
+            imageStream.addListener(
+              ImageStreamListener((ImageInfo info, bool _) {
+                _loadImageModel!.imageWidth = constraints.maxWidth.toInt();
+                _loadImageModel!.imageHeight = info.image.height * (constraints.maxWidth.toInt()) ~/ info.image.width;
+                // print("图片的宽度:${info.image.width} 高度:${info.image.height} 适配的宽度:${_loadImageModel!.imageWidth} 适配的高度:${_loadImageModel!.imageHeight}");
+              }),
+            );
+          }
+          return child;
+        },
       );
     });
   }
